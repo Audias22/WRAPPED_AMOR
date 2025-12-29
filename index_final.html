@@ -196,7 +196,8 @@
     }
 
     .wrapped-number {
-      font-size: clamp(6rem, 20vw, 12rem);
+      /* Ajuste de responsividad: reducir tamaño mínimo en móviles para evitar recortes */
+      font-size: clamp(3.5rem, 16vw, 10rem);
       font-weight: 900;
       line-height: 1;
       margin-bottom: 20px;
@@ -447,6 +448,9 @@
       .album-cover { width: 240px; height: 240px; }
       .photo-collage img { height: 150px; }
       .photo-collage.single img { height: 280px; }
+      /* Ajustes adicionales para pantallas pequeñas */
+      .wrapped-number { font-size: clamp(3rem, 16vw, 7rem); }
+      .wrapped-title { font-size: clamp(1.4rem, 5vw, 2.2rem); }
     }
   
     /* Fade to black overlay */
@@ -795,13 +799,12 @@
       activateAudioButton.textContent = 'Activando…';
       try {
         // Intentamos reproducir y pausar inmediatamente para solicitar permiso al usuario
-        await bgMusic.play();
-        bgMusic.pause();
-        audioActivated = true;
-        activateAudioButton.style.display = 'none';
-        if (soundToggle) soundToggle.style.display = 'flex';
-        updateSoundIcon();
-        showAudioStatus('Audio activado. Ya puedes entrar ▶️', 'lime', true);
+          await bgMusic.play();
+          bgMusic.pause();
+          audioActivated = true;
+          activateAudioButton.style.display = 'none';
+          if (soundToggle) soundToggle.style.display = 'flex';
+          updateSoundIcon();
         // Habilitar el botón de play visualmente si estaba deshabilitado
         playButton.classList.remove('disabled');
         playButton.removeAttribute('disabled');
@@ -826,12 +829,9 @@
   }
 
   // Eventos del elemento audio para ayudar a diagnosticar
-  bgMusic.addEventListener('canplaythrough', () => {
-    showAudioStatus('Audio listo 👍', 'lime', true);
-  });
-  bgMusic.addEventListener('loadeddata', () => {
-    showAudioStatus('Audio cargado', 'lime', true);
-  });
+  // Eventos de carga (no mostramos texto de éxito para evitar mensajes persistentes)
+  bgMusic.addEventListener('canplaythrough', () => { /* audio listo */ });
+  bgMusic.addEventListener('loadeddata', () => { /* audio cargado */ });
   bgMusic.addEventListener('error', (ev) => {
     console.error('Error cargando audio:', ev);
     showAudioStatus('Error al cargar audio (ver consola).', 'orange', true);
