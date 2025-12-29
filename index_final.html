@@ -705,9 +705,16 @@
 <audio id="bgMusic" loop preload="auto">
   <!-- Coloca tu archivo MP3 en la misma carpeta y renómbralo a `musica.mp3`,
        o cambia el atributo `src` por una URL pública a la canción que tengas derecho a usar. -->
-  <source src="musica.mp3" type="audio/mpeg">
+  <!-- Usamos ruta absoluta para evitar problemas de resolución de rutas en el hosting -->
+  <source src="/musica.mp3" type="audio/mpeg">
   Tu navegador no soporta audio HTML5.
 </audio>
+
+<!-- Indicador de estado del audio y enlace directo para probar carga -->
+<div id="audioStatus" style="position:fixed; top:70px; right:18px; color:white; font-size:0.9rem; z-index:4000; display:none; background: rgba(0,0,0,0.35); padding:6px 10px; border-radius:8px;">
+  <span id="audioStatusText">Estado del audio</span>
+  <a id="audioLink" href="/musica.mp3" target="_blank" style="display:none; color: #fff; margin-left:8px; text-decoration: underline;">Abrir</a>
+</div>
 
 <!-- Botón flotante para silenciar/activar el audio -->
 <button class="sound-toggle" id="soundToggle" aria-label="Silenciar/Activar sonido" title="Silenciar/Activar sonido" style="display:none">
@@ -735,9 +742,10 @@
   const soundIcon = document.getElementById('soundIcon');
 
   // Restaurar preferencia de mute (si existe)
+  let savedMuted = false;
   try {
-    const savedMuted = localStorage.getItem('wrapped_muted');
-    if (savedMuted === 'true') bgMusic.muted = true;
+    savedMuted = localStorage.getItem('wrapped_muted') === 'true';
+    if (savedMuted) bgMusic.muted = true;
   } catch (e) { /* no-op */ }
 
   function updateSoundIcon() {
@@ -757,6 +765,39 @@
       updateSoundIcon();
     });
   }
+  // Actualizar icono al cargar la página
+  updateSoundIcon();
+
+  // Elementos para debug/estado de audio
+  const audioStatus = document.getElementById('audioStatus');
+  const audioStatusText = document.getElementById('audioStatusText');
+  const audioLink = document.getElementById('audioLink');
+
+  function showAudioStatus(text, color = 'white', showLink = false) {
+    if (!audioStatus) return;
+    audioStatusText.textContent = text;
+    audioStatus.style.color = color;
+    audioStatus.style.display = 'inline-block';
+    audioLink.style.display = showLink ? 'inline' : 'none';
+    // ocultar después de 6s
+    clearTimeout(audioStatus._hideTimeout);
+    audioStatus._hideTimeout = setTimeout(()=>{ audioStatus.style.display='none'; }, 6000);
+  }
+
+  // Eventos del elemento audio para ayudar a diagnosticar
+  bgMusic.addEventListener('canplaythrough', () => {
+    showAudioStatus('Audio listo 👍', 'lime', true);
+  });
+  bgMusic.addEventListener('loadeddata', () => {
+    showAudioStatus('Audio cargado', 'lime', true);
+  });
+  bgMusic.addEventListener('error', (ev) => {
+    console.error('Error cargando audio:', ev);
+    showAudioStatus('Error al cargar audio (ver consola).', 'orange', true);
+    if (soundToggle) soundToggle.style.display = 'none';
+  });
+  bgMusic.addEventListener('suspend', () => showAudioStatus('Carga suspendida', 'orange', true));
+  bgMusic.addEventListener('stalled', () => showAudioStatus('Carga del audio detenida', 'orange', true));
   let isStarted = false;
   let inCollage = false;
 
@@ -768,8 +809,12 @@
     updateProgress();
     // Mostrar control de sonido
     if (soundToggle) soundToggle.style.display = 'flex';
-    // Si no está muteado, fijar un volumen agradable y reproducir (fade-in sencillo)
+    // Intentar reproducir el audio (si el usuario no lo guardó silenciado)
     try {
+      if (!savedMuted) {
+        bgMusic.muted = false; // permitir audio al iniciar si no estaba guardado como muteado
+      }
+      updateSoundIcon();
       if (!bgMusic.muted) bgMusic.volume = 0.0;
       const p = bgMusic.play();
       if (p && typeof p.then === 'function') {
@@ -778,7 +823,11 @@
             let vol = 0.0;
             const fade = setInterval(() => { vol += 0.08; if (vol >= 0.9) { vol = 0.9; clearInterval(fade); } bgMusic.volume = vol; }, 150);
           }
-        }).catch(e => console.log('Audio no disponible', e));
+        }).catch(e => {
+          console.log('Audio no disponible', e);
+          // Si el navegador bloquea reproducción, indicarle al usuario cómo activarlo
+          showAudioStatus('Pulsa la bocina en la esquina para activar el audio', 'white', true);
+        });
       }
     } catch(e) { console.log(e); }
     setInterval(createParticles, 500);
