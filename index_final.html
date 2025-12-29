@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Nuestro Wrapped 2024 - Para Rocío</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      background: #000;
+      color: white;
+    }
+
+    /* Pantalla de inicio */
+    .start-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease;
+    }
+
+    .start-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .album-cover {
+      width: 280px;
+      height: 280px;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      margin-bottom: 40px;
+      object-fit: cover;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .start-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+      padding: 0 30px;
+    }
+
+    .start-subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+
+    .play-button {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .play-button:active {
+      transform: scale(0.95);
+    }
+
+    .play-button svg {
+      width: 35px;
+      height: 35px;
+      fill: #1db954;
+      margin-left: 5px;
+    }
+
+    /* Botón de retroceso */
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 200;
+      transition: all 0.3s ease;
+    }
+
+    .back-button.visible {
+      display: flex;
+    }
+
+    .back-button:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .back-button svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    /* Contenedor de slides */
+    .slides-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 50px 30px;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    .slide.exit {
+      opacity: 0;
+      transform: scale(1.2);
+    }
+
+    /* Fondos estilo Wrapped */
+    .slide:nth-child(1) { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .slide:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .slide:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .slide:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .slide:nth-child(5) { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .slide:nth-child(6) { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+    .slide:nth-child(7) { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+    .slide:nth-child(8) { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+
+    /* Slides de collage */
+    .collage-slide {
+      background: linear-gradient(135deg, #2d3561 0%, #c05c7e 100%);
+    }
+
+    /* Contenido tipo Wrapped */
+    .slide-content {
+      text-align: center;
+      max-width: 90%;
+    }
+
+    .wrapped-number {
+      font-size: clamp(6rem, 20vw, 12rem);
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .wrapped-title {
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 15px;
+      animation: slideUp 0.8s ease 0.2s both;
+    }
+
+    .wrapped-text {
+      font-size: clamp(1.1rem, 4vw, 1.5rem);
+      line-height: 1.6;
+      opacity: 0.95;
+      margin-bottom: 15px;
+      animation: slideUp 0.8s ease 0.4s both;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .wrapped-emoji {
+      font-size: clamp(4rem, 12vw, 8rem);
+      margin-bottom: 30px;
+      display: inline-block;
+      animation: rotate3d 1s ease 0.3s both;
+    }
+
+    @keyframes rotate3d {
+      0% { transform: rotate3d(1, 1, 0, 0deg) scale(0); }
+      100% { transform: rotate3d(1, 1, 0, 360deg) scale(1); }
+    }
+
+    /* Lista de momentos - ahora clickeable */
+    .moments-list {
+      text-align: left;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .moment-item {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: clamp(1rem, 3.5vw, 1.2rem);
+      animation: slideRight 0.6s ease both;
+      border-left: 4px solid rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .moment-item:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateX(5px);
+    }
+
+    .moment-item:active {
+      transform: scale(0.98);
+    }
+
+    .moment-item::after {
+      content: '→';
+      position: absolute;
+      right: 20px;
+      opacity: 0.7;
+    }
+
+    .moment-item:nth-child(1) { animation-delay: 0.2s; }
+    .moment-item:nth-child(2) { animation-delay: 0.4s; }
+    .moment-item:nth-child(3) { animation-delay: 0.6s; }
+    .moment-item:nth-child(4) { animation-delay: 0.8s; }
+
+    @keyframes slideRight {
+      from { transform: translateX(-50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Collage de fotos */
+    .photo-collage {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-width: 500px;
+      width: 90%;
+      margin: 20px auto;
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .photo-collage img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .photo-collage img:active {
+      transform: scale(0.95);
+    }
+
+    /* Imagen grande (para cuando solo hay una) */
+    .photo-collage.single img {
+      grid-column: span 2;
+      height: 350px;
+    }
+
+    .collage-title {
+      font-size: clamp(1.6rem, 5vw, 2.5rem);
+      font-weight: 700;
+      margin-bottom: 10px;
+      animation: slideUp 0.6s ease both;
+    }
+
+    .collage-subtitle {
+      font-size: clamp(1rem, 3.5vw, 1.3rem);
+      opacity: 0.9;
+      margin-bottom: 20px;
+      animation: slideUp 0.8s ease both;
+    }
+
+    /* Imagen con marco tipo polaroid */
+    .photo-frame {
+      margin-left:auto;
+      margin-right:auto;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      max-width: 350px;
+      animation: photoSlide 0.8s ease both;
+      margin-bottom: 25px;
+    }
+
+    @keyframes photoSlide {
+      from { transform: translateY(50px) rotate(-5deg); opacity: 0; }
+      to { transform: translateY(0) rotate(0deg); opacity: 1; }
+    }
+
+    .photo-frame img {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .photo-caption {
+      color: #333;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Botón de replay */
+    .replay-button {
+      margin-top: 30px;
+      padding: 18px 45px;
+      background: white;
+      color: #000;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      animation: slideUp 0.8s ease 1s both;
+    }
+
+    .replay-button:active {
+      transform: scale(0.95);
+    }
+
+    /* Barra de progreso */
+    .progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      z-index: 100;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: white;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Indicador de tap */
+    .tap-hint {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      opacity: 0.7;
+      animation: pulse 2s infinite;
+      z-index: 100;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Elementos decorativos */
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particleFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes particleFloat {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100px) translateX(50px); opacity: 0; }
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .slide { padding: 40px 20px; }
+      .album-cover { width: 240px; height: 240px; }
+      .photo-collage img { height: 150px; }
+      .photo-collage.single img { height: 280px; }
+    }
+  
+    /* Fade to black overlay */
+    #fadeOverlay {
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:#000;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity 2s ease;
+      z-index:5000;
+    }
+
+
+    .exit-button {
+      margin-top: 20px;
+      padding: 15px 40px;
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(255,40,40,0.4);
+      transition:0.3s;
+    }
+    .exit-button:active { transform:scale(0.95); }
+
+
+    /* Vibrating button animation */
+    @keyframes vibrate {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-2px, -2px); }
+      80% { transform: translate(2px, 2px); }
+      100% { transform: translate(0); }
+    }
+    .exit-button:hover {
+      animation: vibrate 0.3s linear infinite;
+    }
+
+    /* Final thank you screen */
+    #thankyouScreen {
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:#000;
+      display:none;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      color:white;
+      font-size:2rem;
+      z-index:6000;
+    }
+    #thankyouScreen img {
+      width:180px;
+      margin-top:20px;
+    }
+
+    /* Botón de sonido */
+    .sound-toggle {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      backdrop-filter: blur(6px);
+      border: 2px solid rgba(255,255,255,0.18);
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+    .sound-toggle:active { transform: scale(0.95); }
+    .sound-toggle svg { width:22px; height:22px; fill: white; }
+
+</style>
+</head>
+<body>
+
+<!-- Pantalla de inicio -->
+<div class="start-screen" id="startScreen">
+  <img src="amor.jpeg" alt="Nosotros" class="album-cover">
+  <div class="start-title">Nuestro Wrapped 2024</div>
+  <div class="start-subtitle">Para Rocío, con amor</div>
+  <button class="play-button" id="playButton">
+    <svg viewBox="0 0 24 24">
+      <path d="M8 5v14l11-7z"/>
+    </svg>
+  </button>
+      <button class="exit-button" onclick="exitApp()">Salir ❌</button>
+</div>
+
+<!-- Botón de retroceso -->
+<button class="back-button" id="backButton">
+  <svg viewBox="0 0 24 24">
+    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+  </svg>
+</button>
+
+<!-- Barra de progreso -->
+<div class="progress-container">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<!-- Slides -->
+<div class="slides-container" id="slidesContainer">
+  
+  <!-- Slide 1: Fecha especial -->
+  <div class="slide" data-main="true">
+    <div class="slide-content">
+      <div class="wrapped-number">8.12.18</div>
+      <div class="wrapped-title">Todo comenzó aquí</div>
+      <div class="wrapped-text">Una convención regional. Muchos rostros, muchas voces… pero yo solo recuerdo el tuyo.</div>
+    </div>
+  </div>
+
+  <!-- Slide 2: Años juntos -->
+  <div class="slide" data-main="true">
+    <div class="slide-content">
+      <div class="wrapped-emoji">✨</div>
+      <div class="wrapped-number">6</div>
+      <div class="wrapped-title">Años juntos</div>
+      <div class="wrapped-text">Desde ese día, sin saberlo, empezaba algo que marcaría mi vida para siempre.</div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Top momentos (con navegación) -->
+  <div class="slide" data-main="true" id="momentsSlide">
+    <div class="slide-content">
+      <div class="wrapped-title" style="margin-bottom: 30px;">Nuestros Top Momentos</div>
+      <div class="moments-list">
+        <div class="moment-item" data-collage="food">🍽️ Salidas a comer juntos</div>
+        <div class="moment-item" data-collage="concerts">🎵 Conciertos que disfrutamos</div>
+        <div class="moment-item" data-collage="places">🗺️ Lugares que exploramos</div>
+        <div class="moment-item" data-collage="details">💝 Detalles del corazón</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collage 1: Comida -->
+  <div class="slide collage-slide" data-collage="food">
+    <div class="slide-content">
+      <div class="collage-title">🍽️ Nuestras salidas a comer</div>
+      <div class="collage-subtitle">Cada comida fue una aventura juntos</div>
+      <div class="photo-collage">
+        <img src="comida1.jpg" alt="Comida 1">
+        <img src="comida2.jpg" alt="Comida 2">
+        <img src="comida3.jpg" alt="Comida 3">
+        <img src="comida4.jpg" alt="Comida 4">
+      </div>
+    </div>
+  </div>
+
+  <!-- Collage 2: Conciertos -->
+  <div class="slide collage-slide" data-collage="concerts">
+    <div class="slide-content">
+      <div class="collage-title">🎵 Música y conciertos</div>
+      <div class="collage-subtitle">Vibrando juntos al ritmo del amor</div>
+      <div class="photo-collage">
+        <img src="concierto1.jpg" alt="Concierto 1">
+        <img src="concierto2.jpg" alt="Concierto 2">
+        <img src="concierto3.jpg" alt="Concierto 3">
+        <img src="concierto4.jpg" alt="Concierto 4">
+      </div>
+    </div>
+  </div>
+
+  <!-- Collage 3: Lugares -->
+  <div class="slide collage-slide" data-collage="places">
+    <div class="slide-content">
+      <div class="collage-title">🗺️ Lugares especiales</div>
+      <div class="collage-subtitle">Cada rincón tiene nuestra historia</div>
+      <div class="photo-collage">
+        <img src="lugar1.jpg" alt="Lugar 1">
+        <img src="lugar2.jpg" alt="Lugar 2">
+        <img src="lugar3.jpg" alt="Lugar 3">
+        <img src="lugar4.jpg" alt="Lugar 4">
+      </div>
+    </div>
+  </div>
+
+  <!-- Collage 4: Detalles -->
+  <div class="slide collage-slide" data-collage="details">
+    <div class="slide-content">
+      <div class="collage-title">💝 Detalles del corazón</div>
+      <div class="collage-subtitle">Los pequeños gestos que lo dicen todo</div>
+      <div class="photo-collage">
+        <img src="detalle1.jpg" alt="Detalle 1">
+        <img src="detalle2.jpg" alt="Detalle 2">
+        <img src="detalle3.jpg" alt="Detalle 3">
+        <img src="detalle4.jpg" alt="Detalle 4">
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: Lo más especial -->
+  <div class="slide" data-main="true">
+    <div class="slide-content">
+      <div class="wrapped-emoji">💖</div>
+      <div class="wrapped-title">Lo que más valoro</div>
+      <div class="wrapped-text">Tus detalles, tu cariño, tu manera de dar incluso cuando no lo digo.</div>
+      <div class="wrapped-text" style="margin-top: 20px;">Todo lo que has construido conmigo desde tu corazón.</div>
+    </div>
+  </div>
+
+  <!-- Slide 5: Promesa -->
+  <div class="slide" data-main="true">
+    <div class="slide-content">
+      <div class="wrapped-emoji">🌱</div>
+      <div class="wrapped-title">Mi compromiso</div>
+      <div class="wrapped-text">Quiero ser mejor para ti.</div>
+      <div class="wrapped-text">Mejor novio, mejor compañía, mejor apoyo espiritual.</div>
+      <div class="wrapped-text" style="margin-top: 20px;">Acompañarte, no distraerte. Aportar a tu vida, no restarte.</div>
+    </div>
+  </div>
+
+  <!-- Slide 6: El deseo -->
+  <div class="slide" data-main="true">
+    <div class="slide-content">
+      <div class="wrapped-emoji">🌹</div>
+      <div class="wrapped-title">Mi deseo hoy</div>
+      <div class="wrapped-text">No escribo esto solo para recordar lo que fuimos, sino para honrar lo que eres para mí.</div>
+      <div class="wrapped-text" style="margin-top: 20px;">Pase lo que pase, Rocío, gracias por haber sido una parte tan hermosa de mi historia.</div>
+    </div>
+  </div>
+
+  <!-- Slide 7: Foto juntos -->
+  <div class="slide" data-main="true">
+    <div class="slide-content">
+      <div class="photo-frame">
+        <img src="amor.jpeg" alt="Nosotros">
+        <div class="photo-caption">Nuestro momento especial ♥</div>
+      </div>
+      <div class="wrapped-text">Si Dios permite que sigamos, caminaré contigo con más amor, madurez y propósito.</div>
+    </div>
+  </div>
+
+  <!-- Slide 8: Final -->
+  <div class="slide" data-main="true">
+    <div class="slide-content">
+      <div class="wrapped-emoji">💝</div>
+      <div class="wrapped-title">Gracias por todo, Rocío</div>
+      <div class="wrapped-text">Me quedo agradecido por haberte encontrado aquel 8 de diciembre.</div>
+      <button class="replay-button" onclick="restartWrapped()">Ver de nuevo 💕</button>
+      <button class="exit-button" onclick="exitApp()">Salir ❌</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="tap-hint" id="tapHint">Toca para continuar</div>
+
+<audio id="bgMusic" loop preload="auto">
+  <!-- Coloca tu archivo MP3 en la misma carpeta y renómbralo a `musica.mp3`,
+       o cambia el atributo `src` por una URL pública a la canción que tengas derecho a usar. -->
+  <source src="musica.mp3" type="audio/mpeg">
+  Tu navegador no soporta audio HTML5.
+</audio>
+
+<!-- Botón flotante para silenciar/activar el audio -->
+<button class="sound-toggle" id="soundToggle" aria-label="Silenciar/Activar sonido" title="Silenciar/Activar sonido" style="display:none">
+  <!-- Ícono por defecto: volumen activado -->
+  <svg viewBox="0 0 24 24" id="soundIcon">
+    <path d="M3 10v4h4l5 5V5L7 10H3z"></path>
+    <path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.06c1.5-.74 2.5-2.26 2.5-4.03z"></path>
+  </svg>
+</button>
+
+<script>
+  let currentSlide = 0;
+  let navigationHistory = [];
+  const slides = document.querySelectorAll('.slide');
+  const mainSlides = document.querySelectorAll('.slide[data-main="true"]');
+  const collageSlides = document.querySelectorAll('.slide[data-collage]');
+  const progressFill = document.getElementById('progressFill');
+  const tapHint = document.getElementById('tapHint');
+  const container = document.getElementById('slidesContainer');
+  const startScreen = document.getElementById('startScreen');
+  const playButton = document.getElementById('playButton');
+  const backButton = document.getElementById('backButton');
+  const bgMusic = document.getElementById('bgMusic');
+  const soundToggle = document.getElementById('soundToggle');
+  const soundIcon = document.getElementById('soundIcon');
+
+  // Restaurar preferencia de mute (si existe)
+  try {
+    const savedMuted = localStorage.getItem('wrapped_muted');
+    if (savedMuted === 'true') bgMusic.muted = true;
+  } catch (e) { /* no-op */ }
+
+  function updateSoundIcon() {
+    if (!soundIcon) return;
+    if (bgMusic.muted || bgMusic.volume === 0) {
+      soundIcon.innerHTML = '<path d="M16.5 12c0-1.77-1-3.29-2.5-4.03V16.03C15.5 15.29 16.5 13.77 16.5 12z"></path><path d="M19 12c0 2.76-1.79 5.1-4.25 5.84l1.13 1.13C20.01 18.1 22 15.2 22 12s-1.99-6.1-6.12-7.97L14.75 5.84C17.21 6.9 19 9.24 19 12z"></path>';
+    } else {
+      soundIcon.innerHTML = '<path d="M3 10v4h4l5 5V5L7 10H3z"></path><path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v8.06c1.5-.74 2.5-2.26 2.5-4.03z"></path>';
+    }
+  }
+
+  if (soundToggle) {
+    soundToggle.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      bgMusic.muted = !bgMusic.muted;
+      try { localStorage.setItem('wrapped_muted', bgMusic.muted); } catch(e){}
+      updateSoundIcon();
+    });
+  }
+  let isStarted = false;
+  let inCollage = false;
+
+  // Iniciar experiencia
+  playButton.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    isStarted = true;
+    slides[currentSlide].classList.add('active');
+    updateProgress();
+    // Mostrar control de sonido
+    if (soundToggle) soundToggle.style.display = 'flex';
+    // Si no está muteado, fijar un volumen agradable y reproducir (fade-in sencillo)
+    try {
+      if (!bgMusic.muted) bgMusic.volume = 0.0;
+      const p = bgMusic.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          if (!bgMusic.muted) {
+            let vol = 0.0;
+            const fade = setInterval(() => { vol += 0.08; if (vol >= 0.9) { vol = 0.9; clearInterval(fade); } bgMusic.volume = vol; }, 150);
+          }
+        }).catch(e => console.log('Audio no disponible', e));
+      }
+    } catch(e) { console.log(e); }
+    setInterval(createParticles, 500);
+  });
+
+  // Actualizar progreso (solo slides principales)
+  function updateProgress() {
+    if (!inCollage) {
+      const mainSlideIndex = Array.from(mainSlides).indexOf(slides[currentSlide]);
+      if (mainSlideIndex >= 0) {
+        const progress = ((mainSlideIndex + 1) / mainSlides.length) * 100;
+        progressFill.style.width = progress + '%';
+      }
+    }
+  }
+
+  // Navegar al collage
+  function goToCollage(collageType) {
+    const collageSlide = document.querySelector(`.slide[data-collage="${collageType}"]`);
+    if (collageSlide) {
+      navigationHistory.push(currentSlide);
+      
+      slides[currentSlide].classList.remove('active');
+      slides[currentSlide].classList.add('exit');
+      
+      setTimeout(() => slides[currentSlide].classList.remove('exit'), 800);
+      
+      currentSlide = Array.from(slides).indexOf(collageSlide);
+      slides[currentSlide].classList.add('active');
+      
+      inCollage = true;
+      backButton.classList.add('visible');
+      tapHint.textContent = 'Toca la flecha para volver';
+    }
+  }
+
+  // Volver atrás
+  backButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (navigationHistory.length > 0) {
+      const previousSlide = navigationHistory.pop();
+      
+      slides[currentSlide].classList.remove('active');
+      slides[currentSlide].classList.add('exit');
+      
+      setTimeout(() => slides[currentSlide].classList.remove('exit'), 800);
+      
+      currentSlide = previousSlide;
+      slides[currentSlide].classList.add('active');
+      
+      inCollage = false;
+      backButton.classList.remove('visible');
+      tapHint.textContent = 'Toca para continuar';
+      updateProgress();
+    }
+  });
+
+  // Click en los items de momentos
+  document.querySelectorAll('.moment-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const collageType = item.getAttribute('data-collage');
+      goToCollage(collageType);
+    });
+  });
+
+  // Navegar al siguiente slide (solo en flujo principal)
+  function nextSlide(e) {
+    if (!isStarted || inCollage) return;
+    
+    if (e.target.classList.contains('moment-item')) return;
+    
+    const mainSlideIndex = Array.from(mainSlides).indexOf(slides[currentSlide]);
+    if (mainSlideIndex >= 0 && mainSlideIndex < mainSlides.length - 1) {
+      slides[currentSlide].classList.remove('active');
+      slides[currentSlide].classList.add('exit');
+      
+      setTimeout(() => slides[currentSlide].classList.remove('exit'), 800);
+      
+      currentSlide = Array.from(slides).indexOf(mainSlides[mainSlideIndex + 1]);
+      slides[currentSlide].classList.add('active');
+      updateProgress();
+      
+      if (mainSlideIndex + 1 === mainSlides.length - 1) {
+        tapHint.style.opacity = '0';
+      }
+    }
+  }
+
+  // Reiniciar
+  function restartWrapped() {
+    // Remover active de todas las slides
+    slides.forEach(slide => {
+      slide.classList.remove('active');
+      slide.classList.remove('exit');
+    });
+    
+    // Resetear todo
+    currentSlide = 0;
+    navigationHistory = [];
+    inCollage = false;
+    isStarted = false;
+    
+    // Mostrar pantalla de inicio
+    startScreen.classList.remove('hidden');
+    backButton.classList.remove('visible');
+    progressFill.style.width = '0%';
+    tapHint.style.opacity = '0.7';
+    tapHint.textContent = 'Toca para continuar';
+  }
+
+  // Crear partículas
+  function createParticles() {
+    if (!isStarted) return;
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 2 + 's';
+    container.appendChild(particle);
+    setTimeout(() => particle.remove(), 4000);
+  }
+
+  // Event listeners
+  container.addEventListener('click', nextSlide);
+  container.addEventListener('touchend', (e) => {
+    if (!e.target.closest('.moment-item') && !e.target.closest('.back-button')) {
+      e.preventDefault();
+      nextSlide(e);
+    }
+  });
+
+  // Prevenir zoom en doble tap
+  let lastTap = 0;
+  document.addEventListener('touchend', (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+      e.preventDefault();
+    }
+    lastTap = currentTime;
+  });
+
+function exitApp() {
+  const overlay = document.getElementById('fadeOverlay');
+  overlay.style.opacity = '1';
+  setTimeout(() => {
+    window.location.href = 'about:blank';
+  }, 2200);
+}
+
+
+function exitApp() {
+  const overlay = document.getElementById('fadeOverlay');
+  const audio = document.getElementById('bgMusic');
+  if(audio){ audio.volume = 1; let fade=setInterval(()=>{audio.volume-=0.1;if(audio.volume<=0){clearInterval(fade); audio.pause();}},200); }
+  overlay.style.opacity = '1';
+  setTimeout(()=>{
+    document.getElementById('thankyouScreen').style.display='flex';
+  },1800);
+  setTimeout(()=>{
+    window.location.href='about:blank';
+  },5000);
+}
+
+</script>
+
+<div id="fadeOverlay"></div>
+
+</div>
+</body>
+
+</html>
