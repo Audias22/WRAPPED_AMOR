@@ -90,6 +90,12 @@
       transform: scale(0.95);
     }
 
+    .play-button.disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .play-button svg {
       width: 35px;
       height: 35px;
@@ -539,6 +545,7 @@
       <path d="M8 5v14l11-7z"/>
     </svg>
   </button>
+  <button class="activate-audio" id="activateAudioButton" style="margin-top:14px;padding:10px 16px;border-radius:24px;background:rgba(255,255,255,0.15);border:none;color:white;cursor:pointer;font-weight:700;">Toca para activar sonido</button>
       <button class="exit-button" onclick="exitApp()">Salir ❌</button>
 </div>
 
@@ -740,6 +747,9 @@
   const bgMusic = document.getElementById('bgMusic');
   const soundToggle = document.getElementById('soundToggle');
   const soundIcon = document.getElementById('soundIcon');
+  const activateAudioButton = document.getElementById('activateAudioButton');
+
+  let audioActivated = false;
 
   // Restaurar preferencia de mute (si existe)
   let savedMuted = false;
@@ -773,6 +783,37 @@
   const audioStatusText = document.getElementById('audioStatusText');
   const audioLink = document.getElementById('audioLink');
 
+  // Preparar el botón obligatorio de activación de audio
+  if (activateAudioButton) {
+    // Si el usuario ya permitió antes (guardado), ocultamos el botón
+    if (!savedMuted) {
+      // dejamos el botón visible por seguridad: requiere interacción para desbloquear audio
+    }
+    activateAudioButton.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      activateAudioButton.disabled = true;
+      activateAudioButton.textContent = 'Activando…';
+      try {
+        // Intentamos reproducir y pausar inmediatamente para solicitar permiso al usuario
+        await bgMusic.play();
+        bgMusic.pause();
+        audioActivated = true;
+        activateAudioButton.style.display = 'none';
+        if (soundToggle) soundToggle.style.display = 'flex';
+        updateSoundIcon();
+        showAudioStatus('Audio activado. Ya puedes entrar ▶️', 'lime', true);
+        // Habilitar el botón de play visualmente si estaba deshabilitado
+        playButton.classList.remove('disabled');
+        playButton.removeAttribute('disabled');
+      } catch (err) {
+        console.error('No se pudo activar el audio:', err);
+        showAudioStatus('No se pudo activar el audio, vuelve a intentarlo', 'orange', true);
+        activateAudioButton.disabled = false;
+        activateAudioButton.textContent = 'Toca para activar sonido';
+      }
+    });
+  }
+
   function showAudioStatus(text, color = 'white', showLink = false) {
     if (!audioStatus) return;
     audioStatusText.textContent = text;
@@ -802,7 +843,15 @@
   let inCollage = false;
 
   // Iniciar experiencia
+  // Inicialmente el botón de play está deshabilitado hasta activar audio
+  playButton.classList.add('disabled');
+  playButton.setAttribute('disabled', 'disabled');
+
   playButton.addEventListener('click', () => {
+    if (!audioActivated) {
+      showAudioStatus('Primero activa el sonido para continuar', 'white', true);
+      return;
+    }
     startScreen.classList.add('hidden');
     isStarted = true;
     slides[currentSlide].classList.add('active');
