@@ -837,8 +837,10 @@
     showAudioStatus('Error al cargar audio (ver consola).', 'orange', true);
     if (soundToggle) soundToggle.style.display = 'none';
   });
-  bgMusic.addEventListener('suspend', () => showAudioStatus('Carga suspendida', 'orange', true));
-  bgMusic.addEventListener('stalled', () => showAudioStatus('Carga del audio detenida', 'orange', true));
+  // No mostrar mensajes molestos en pantalla por eventos de carga no críticos;
+  // registramos en consola para diagnóstico remoto si hace falta.
+  bgMusic.addEventListener('suspend', () => console.log('Audio load suspended'));
+  bgMusic.addEventListener('stalled', () => console.log('Audio load stalled'));
   let isStarted = false;
   let inCollage = false;
 
@@ -1003,10 +1005,13 @@
   // Event listeners
   container.addEventListener('click', nextSlide);
   container.addEventListener('touchend', (e) => {
-    if (!e.target.closest('.moment-item') && !e.target.closest('.back-button')) {
-      e.preventDefault();
-      nextSlide(e);
+    // Evitar que taps en botones o enlaces desencadenen la navegación por defecto en móvil
+    // Así botones como "Ver de nuevo" o "Salir" funcionan correctamente.
+    if (e.target.closest('.moment-item') || e.target.closest('.back-button') || e.target.closest('button') || e.target.closest('a')) {
+      return;
     }
+    e.preventDefault();
+    nextSlide(e);
   });
 
   // Prevenir zoom en doble tap
